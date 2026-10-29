@@ -1,6 +1,6 @@
 # Rancangan Topologi (Mid-Project)
 
-File Packet Tracer: `project.pkt`. Skema: CIDR.
+File Packet Tracer: `K4_CIDR.pkt`. Skema: CIDR.
 
 ## Backbone
 
