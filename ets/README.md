@@ -33,6 +33,13 @@ Nama perangkat di file ini masih format UTS (`SW-Pegawai`, `PC-Pegawai`). Format
 # Laporan Subnetting Jaringan Smart City Surabaya (No. 2)
 
 ---
+## File Tabel VLSM & CIDR
+
+| File | Keterangan |
+|---|---|
+| [`VLSM & CIDR`](TABEL VLSM & CIDR.xlsx) | VLSM |
+
+---
 
 ## 1. Tabel Alokasi VLSM (Murni Terbesar ke Terkecil)
 
