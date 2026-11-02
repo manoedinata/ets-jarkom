@@ -35,23 +35,11 @@ Nama perangkat di file ini masih format UTS (`SW-Pegawai`, `PC-Pegawai`). Format
 
 ---
 
-# <<<<<<< HEAD
-
-<<<<<<< HEAD
-
 ### File Tabel VLSM & CIDR
 
 | File                                    | Keterangan                               |
 | :-------------------------------------- | :--------------------------------------- |
 | [VLSM & CIDR](TABEL_VLSM_DAN_CIDR.xlsx) | Tabel Alokasi VLSM, CIDR, dan Revisi UTS |
-
-=======
-
-## File Tabel VLSM & CIDR
-
-| File                                    | Keterangan |
-| --------------------------------------- | ---------- |
-| [`VLSM & CIDR`](TABEL VLSM & CIDR.xlsx) | VLSM       |
 
 ---
 
