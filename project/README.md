@@ -6,7 +6,8 @@ Skema yang dipilih: **CIDR** (blok `10.32.0.0/13`, agregat `10.32.0.0/15`). Lemb
 
 | File | Isi |
 |---|---|
-| [`K4_CIDR.pkt`](K4_CIDR.pkt) | Topologi Packet Tracer (R-ISP, server internet, 7 router, 14 LAN) dengan alamat statis dan layanan |
+| [`K4_CIDR.pkt`](K4_CIDR.pkt) | Topologi Packet Tracer (R-ISP, server internet, 7 router, 14 LAN) dengan alamat statis, layanan, dan DHCP (soal 4) |
+| [`K4_CIDR_OSPF.pkt`](K4_CIDR_OSPF.pkt) | Salinan `K4_CIDR.pkt` dengan link cadangan L7 dan OSPF menggantikan static route antar-router (soal 7) |
 | [`perubahan.md`](perubahan.md) | Perbedaan topologi dan subnetting dibanding UTS |
 | [`topologi.md`](topologi.md) | Rancangan topologi, penambahan port router, desain per LAN, penamaan |
 | [`subnetting-cidr.md`](subnetting-cidr.md) | Tabel alokasi CIDR dengan gateway, link, alamat tambahan, dan tabel revisi |

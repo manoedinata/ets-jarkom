@@ -12,6 +12,7 @@ File Packet Tracer: `K4_CIDR.pkt`. Skema: CIDR.
 | L4 | R-PUSAT | Serial0/1/1 | R-TIMUR | Serial0/0/0 |
 | L5 | R-PUSAT | Serial0/0/1 | R-BARAT | Serial0/0/0 |
 | L6 | R-UTARA | Serial0/0/1 | R-PELABUHAN | Serial0/0/0 |
+| L7 (cadangan, hanya file OSPF) | R-DC | Serial0/0/1 | R-UTARA | Serial0/1/0 |
 | ISP | R-PUSAT | GigabitEthernet0/2 | R-ISP | GigabitEthernet0/0 |
 | Internet | R-ISP | GigabitEthernet0/1 | SERVER-INTERNET | FastEthernet0 |
 
@@ -21,7 +22,7 @@ Semua router memakai Cisco 2911.
 
 - Router 2911 hanya punya 3 port Gigabit. R-PUSAT butuh 8 koneksi (2 LAN, 5 link router, 1 ISP), jadi link antar-router memakai serial.
 - Serial memakai modul `HWIC-2T` (2 port per modul). R-PUSAT memakai 3 modul, router lain 1 modul.
-- R-UTARA memakai 2 modul. Modul kedua (`Serial0/1/0`, `Serial0/1/1`) disiapkan untuk link cadangan L7 ke R-DC (soal 7). R-DC masih punya `Serial0/0/1` kosong.
+- R-UTARA memakai 2 modul. Modul kedua (`Serial0/1/0`, `Serial0/1/1`) dipakai untuk link cadangan L7 ke R-DC (soal 7): R-UTARA `Serial0/1/0` ke R-DC `Serial0/0/1`, R-DC sisi DCE. L7 hanya ada di `K4_CIDR_OSPF.pkt`.
 - Sisi DCE memakai `clock rate 64000`: R-PUSAT di semua link L1–L5, R-UTARA di L6.
 - Port Gigabit dipakai untuk LAN (`Gi0/0` dan `Gi0/1`) dan R-ISP.
 
@@ -55,7 +56,8 @@ Pertimbangan media dan jenis perangkat:
 
 - R-ISP (2911), `Gi0/0` ke R-PUSAT (`203.0.113.18/30`), `Gi0/1` ke server (`8.8.8.1/24`).
 - SERVER-INTERNET `8.8.8.8/24`, gateway `8.8.8.1`.
-- Tunnel GRE R-PUSAT ke R-PELABUHAN dan link L7 R-DC ke R-UTARA: belum dibangun (soal 6 dan 7).
+- Tunnel GRE R-PUSAT ke R-PELABUHAN: belum dibangun (soal 6).
+- Link L7 R-DC ke R-UTARA `10.33.200.52/30`: dibangun di `K4_CIDR_OSPF.pkt` (soal 7).
 
 ## Penamaan dan label
 

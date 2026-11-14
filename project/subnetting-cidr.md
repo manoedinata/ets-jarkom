@@ -47,6 +47,7 @@ Link point-to-point tidak punya gateway. Alamat dipakai langsung di interface ke
 | L4 R-PUSAT – R-TIMUR | /30 | 10.33.200.44 | .45 – .46 | 10.33.200.47 | .45 | .46 |
 | L5 R-PUSAT – R-BARAT | /30 | 10.33.200.48 | .49 – .50 | 10.33.200.51 | .49 | .50 |
 | L6 R-UTARA – R-PELABUHAN | /30 | 10.32.66.0 | .1 – .2 | 10.32.66.3 | .1 | .2 |
+| L7 R-DC – R-UTARA (cadangan, soal 7) | /30 | 10.33.200.52 | .53 – .54 | 10.33.200.55 | .53 | .54 |
 | R-PUSAT – R-ISP | /30 | 203.0.113.16 | .17 – .18 | 203.0.113.19 | .17 (R-PUSAT) | .18 (R-ISP) |
 | Tunnel GRE | /30 | 192.168.4.0 | .1 – .2 | 192.168.4.3 | .1 (R-PUSAT) | .2 (R-PELABUHAN) |
 | Server internet | /24 | 8.8.8.0 | 8.8.8.1 – 8.8.8.254 | 8.8.8.255 | 8.8.8.1 (R-ISP) | 8.8.8.8 (server) |
