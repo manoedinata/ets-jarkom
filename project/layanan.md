@@ -31,5 +31,5 @@ Klien email:
 - Penerimaan email belum terbukti. Isi mailbox tidak bisa dibaca lewat API, jadi perlu screenshot manual dari Desktop > Email.
 - Upload file FTP dari PC-CCTV-KOTA (perintah `put`) belum diuji.
 - Screenshot bukti per uji belum ada.
-- Alamat PC dan laptop saat ini statis (sementara). Soal 4 menggantinya dengan DHCP, termasuk DHCP CCTV dari SERVER-DC.
+- ~~Alamat PC dan laptop saat ini statis (sementara).~~ Selesai di soal 4: semua PC, laptop, dan sensor memakai DHCP (DNS `10.32.160.2`), CCTV dilayani SERVER-DC melalui relay R-DC. Detail di `ets/README.md`.
 - Static route dasar sudah dipasang agar layanan bisa diuji lintas wilayah. Soal 3 (static routing lengkap), 5 (NAT), 6 (GRE), dan 7 (OSPF) masih dikerjakan anggota lain.
