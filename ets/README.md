@@ -504,6 +504,208 @@ Desktop > IP Configuration > **DHCP** pada PC dan laptop. Sensor (`WiredEndDevic
 
 ---
 
+## Static Routing (Soal 3)
+
+---
+
+### **1. Tujuan**
+
+- Seluruh LAN dapat saling berkomunikasi hanya dengan static route, dengan default route untuk arah keluar.
+- Default route hanya mengarah ke router di atasnya (arah keluar), tidak ke router di bawahnya.
+- R-PUSAT dan R-UTARA memiliki static route ke jaringan di bawahnya: R-PUSAT ke semua LAN R-DC, R-UTARA, R-PELABUHAN, R-SELATAN, R-TIMUR, dan R-BARAT; R-UTARA ke semua LAN R-PELABUHAN.
+
+File: [`project/K4_CIDR.pkt`](../project/K4_CIDR.pkt).
+
+---
+
+### **2. Rancangan**
+
+| Keputusan | Alasan |
+|---|---|
+| R-PUSAT memakai satu rute ringkas (agregat) per router tujuan, bukan satu rute per LAN | Skema CIDR sudah menyediakan satu blok agregat per router (tabel agregat di Soal 2), sehingga tabel routing R-PUSAT hanya berisi 6 rute ringkas ditambah 1 default route. |
+| Default route R-DC, R-BARAT, R-TIMUR, R-SELATAN, dan R-UTARA mengarah ke R-PUSAT | R-PUSAT adalah router di atas mereka dan satu-satunya yang terhubung ke R-ISP. |
+| Default route R-PELABUHAN mengarah ke R-UTARA | Satu-satunya link R-PELABUHAN adalah L6 ke R-UTARA, yang berada di atasnya. |
+| R-UTARA memiliki rute `10.32.192.0/18` ke R-PELABUHAN | Blok agregat R-PELABUHAN mencakup seluruh LAN Sensor dan SCADA serta Kantor Pelabuhan. |
+| R-ISP tidak memiliki rute ke alamat privat internal | Syarat Soal 5: R-ISP tidak boleh mengenal blok privat internal. |
+| Rute R-PUSAT ke R-PELABUHAN diarahkan ke tunnel | Lalu lintas Balai Kota dan Pelabuhan wajib lewat tunnel GRE (lihat Soal 6). |
+
+---
+
+### **3. Langkah Konfigurasi**
+
+```text
+! R-PUSAT
+ip route 10.32.0.0 255.255.128.0 10.33.200.38    ! semua LAN R-UTARA
+ip route 10.32.128.0 255.255.192.0 10.33.200.34  ! semua LAN R-DC
+ip route 10.33.0.0 255.255.192.0 10.33.200.42    ! semua LAN R-SELATAN
+ip route 10.33.64.0 255.255.192.0 10.33.200.46   ! semua LAN R-TIMUR
+ip route 10.33.128.0 255.255.192.0 10.33.200.50  ! semua LAN R-BARAT
+ip route 10.32.192.0 255.255.192.0 10.33.200.38  ! semua LAN R-PELABUHAN (kemudian diganti lewat tunnel, lihat Soal 6)
+ip route 0.0.0.0 0.0.0.0 203.0.113.18            ! default ke R-ISP
+
+! R-UTARA
+ip route 10.32.192.0 255.255.192.0 10.32.66.2    ! semua LAN R-PELABUHAN
+ip route 0.0.0.0 0.0.0.0 10.33.200.37            ! default ke R-PUSAT
+
+! R-DC
+ip route 0.0.0.0 0.0.0.0 10.33.200.33
+
+! R-BARAT
+ip route 0.0.0.0 0.0.0.0 10.33.200.49
+
+! R-TIMUR
+ip route 0.0.0.0 0.0.0.0 10.33.200.45
+
+! R-SELATAN
+ip route 0.0.0.0 0.0.0.0 10.33.200.41
+
+! R-PELABUHAN
+ip route 0.0.0.0 0.0.0.0 10.32.66.1
+```
+
+Setiap router diakhiri dengan `end` dan `write memory`.
+
+---
+
+### **4. Hasil Pengujian**
+
+#### **A. Tabel static route**
+
+![Static route R-PUSAT](assets/Soal3_R-PUSAT_route.png)
+
+![Static route R-UTARA](assets/Soal3_R-UTARA_route.png)
+
+- Analisis: R-PUSAT memiliki rute ringkas ke semua router di bawahnya dan default route ke R-ISP. Rute ke `10.32.192.0/18` (R-PELABUHAN) sudah menunjuk ke `192.168.4.2` karena rute lama diganti lewat tunnel pada Soal 6. R-UTARA memiliki rute ke `10.32.192.0/18` lewat `10.32.66.2` dan default route lewat `10.33.200.37` (R-PUSAT).
+
+---
+
+## Tunnel GRE (Soal 6)
+
+---
+
+### **1. Tujuan**
+
+- Membangun tunnel GRE antara R-PUSAT dan R-PELABUHAN.
+- Lalu lintas antara subnet Balai Kota dan subnet Pelabuhan wajib melewati tunnel.
+- Menjelaskan alasan router memilih jalur tunnel dibanding jalur lain ke Pelabuhan, serta alasan GRE saja tidak mengenkripsi data.
+
+File: [`project/K4_CIDR.pkt`](../project/K4_CIDR.pkt).
+
+---
+
+### **2. Rancangan**
+
+Tunnel dibangun di atas jalur fisik yang sudah ada: R-PUSAT, link L2, R-UTARA, link L6, R-PELABUHAN. Subnet tunnel mengikuti tabel soal, yaitu `192.168.K.0/30` dengan K = 4, sehingga `192.168.4.0/30`.
+
+| Item | R-PUSAT | R-PELABUHAN |
+|---|---|---|
+| Interface | Tunnel0 | Tunnel0 |
+| IP tunnel | 192.168.4.1/30 | 192.168.4.2/30 |
+| Tunnel source | Serial0/1/0 (10.33.200.37, link L2) | Serial0/0/0 (10.32.66.2, link L6) |
+| Tunnel destination | 10.32.66.2 | 10.33.200.37 |
+| Mode | GRE over IPv4 | GRE over IPv4 |
+
+| Keputusan | Alasan |
+|---|---|
+| Tunnel source dan destination memakai IP serial yang sudah ada | Keduanya saling terjangkau lewat R-UTARA: R-PUSAT menjangkau `10.32.66.2` lewat rute `10.32.0.0/17`, dan R-PELABUHAN menjangkau `10.33.200.37` lewat default route ke R-UTARA. |
+| Rute lama R-PUSAT ke Pelabuhan lewat R-UTARA dihapus, bukan hanya ditambah rute baru | Jika dua rute dengan prefix dan administrative distance sama (1) dibiarkan, router membagi beban dan sebagian paket tidak lewat tunnel. |
+| Rute LAN Balai Kota di R-PELABUHAN dibuat dua rute spesifik (`/21` dan `/27`), tidak diringkas menjadi `10.33.192.0/20` | Blok `/20` mencakup `10.33.200.37` (tunnel source R-PUSAT). Paket GRE menuju alamat itu akan diarahkan ke tunnel itu sendiri (recursive routing) dan tunnel menjadi tidak stabil. |
+
+---
+
+### **3. Langkah Konfigurasi**
+
+```text
+! R-PUSAT
+interface Tunnel0
+ ip address 192.168.4.1 255.255.255.252
+ tunnel source Serial0/1/0
+ tunnel destination 10.32.66.2
+ tunnel mode gre ip
+ no shutdown
+ exit
+no ip route 10.32.192.0 255.255.192.0 10.33.200.38
+ip route 10.32.192.0 255.255.192.0 192.168.4.2
+
+! R-PELABUHAN
+interface Tunnel0
+ ip address 192.168.4.2 255.255.255.252
+ tunnel source Serial0/0/0
+ tunnel destination 10.33.200.37
+ tunnel mode gre ip
+ no shutdown
+ exit
+ip route 10.33.192.0 255.255.248.0 192.168.4.1
+ip route 10.33.200.0 255.255.255.224 192.168.4.1
+```
+
+Setiap router diakhiri dengan `end` dan `write memory`.
+
+Rute lalu lintas Balai Kota dan Pelabuhan:
+
+| Router | Tujuan | Next hop | Keterangan |
+|---|---|---|---|
+| R-PUSAT | `10.32.192.0/18` | `192.168.4.2` | LAN Sensor dan SCADA serta Kantor Pelabuhan |
+| R-PELABUHAN | `10.33.192.0/21` | `192.168.4.1` | LAN Pegawai Balai Kota |
+| R-PELABUHAN | `10.33.200.0/27` | `192.168.4.1` | LAN Server Balai Kota |
+
+---
+
+### **4. Penjelasan**
+
+#### **A. Mengapa router memilih jalur tunnel dibanding jalur lain ke Pelabuhan**
+
+- Secara fisik hanya ada satu jalur ke R-PELABUHAN. Tunnel GRE adalah jalur logis (overlay) di atas jalur yang sama, sehingga yang dipilih router adalah rute logis tersebut.
+- Di R-PUSAT, satu-satunya rute ke prefix `10.32.192.0/18` menunjuk ke next hop `192.168.4.2` (interface Tunnel0). Rute lama via R-UTARA sudah dihapus sehingga tidak ada alternatif yang bersaing.
+- Di R-PELABUHAN, rute ke LAN Balai Kota (`/21` dan `/27`) lebih spesifik daripada default route (`/0`). Berdasarkan aturan _longest prefix match_, router memilih tunnel untuk lalu lintas ke Balai Kota, sedangkan tujuan lain tetap memakai default route ke R-UTARA.
+- Paket yang masuk tunnel dibungkus header GRE dengan IP luar `10.33.200.37` ke `10.32.66.2`. R-UTARA hanya meneruskan paket luar tersebut dan tidak memproses isi paket asli, sehingga R-UTARA tidak muncul sebagai hop pada traceroute.
+
+#### **B. Mengapa GRE saja tidak mengenkripsi data**
+
+GRE hanya melakukan enkapsulasi: menambahkan header GRE (4 byte) dan header IP luar (20 byte) pada paket asli. GRE tidak menyediakan kerahasiaan, integritas, maupun autentikasi. Isi paket asli tetap berupa teks biasa di sepanjang jalur, sehingga dapat dibaca oleh perangkat yang berada di jalur tunnel, misalnya R-UTARA atau penyadap di link L2 dan L6. Enkripsi memerlukan protokol tambahan seperti IPsec.
+
+---
+
+### **5. Hasil Pengujian**
+
+#### **A. Status tunnel**
+
+![Tunnel R-PUSAT](assets/Soal6_R-PUSAT_tunnel.png)
+
+![Tunnel R-PELABUHAN](assets/Soal6_R-PELABUHAN_tunnel.png)
+
+- Analisis: pada kedua router, `show interfaces tunnel 0` menunjukkan `Tunnel0 is up, line protocol is up` dengan protocol GRE/IP. R-PUSAT memakai `192.168.4.1/30` (source `10.33.200.37`, destination `10.32.66.2`), dan R-PELABUHAN memakai `192.168.4.2/30` (source `10.32.66.2`, destination `10.33.200.37`).
+
+#### **B. Ping antar-ujung tunnel dan antar-LAN lewat tunnel**
+
+Pengujian antar-LAN memakai _extended ping_ dengan source berupa alamat LAN, bukan alamat tunnel, untuk membuktikan lalu lintas dua arah antara LAN Balai Kota dan LAN Pelabuhan.
+
+| Dari | Tujuan | Source | Hasil |
+|---|---|---|---|
+| R-PUSAT | `192.168.4.2` (ujung tunnel) | otomatis | 5/5 berhasil |
+| R-PUSAT | `10.32.192.1` (LAN Sensor dan SCADA) | `10.33.192.1` (LAN Pegawai) | 5/5 berhasil |
+| R-PELABUHAN | `10.33.192.1` (LAN Pegawai) | `10.32.192.1` (LAN Sensor dan SCADA) | 5/5 berhasil |
+
+![Ping dari R-PUSAT](assets/Soal6_R-PUSAT_ping.png)
+
+![Ping dari R-PELABUHAN](assets/Soal6_R-PELABUHAN_ping.png)
+
+- Analisis: ketiga pengujian berhasil dengan success rate 100 persen, sehingga lalu lintas antara Balai Kota dan Pelabuhan berjalan dua arah lewat tunnel.
+
+#### **C. Traceroute**
+
+Dari PC-PEGAWAI ke PC-KANTOR-PELABUHAN (`10.32.224.12`):
+
+```bash
+C:\>tracert 10.32.224.12
+```
+
+![Tracert PC-PEGAWAI ke PC-KANTOR-PELABUHAN](assets/Soal6_tracert.png)
+
+- Analisis: hop pertama adalah `10.33.192.1` (R-PUSAT) dan hop kedua adalah `192.168.4.2` (ujung tunnel di R-PELABUHAN). Hop `10.33.200.38` (R-UTARA) tidak muncul, sehingga terbukti paket Balai Kota menuju Pelabuhan melewati tunnel, bukan hop-by-hop lewat R-UTARA.
+
+---
+
 ## Dynamic Routing OSPF (Soal 7)
 
 ---
